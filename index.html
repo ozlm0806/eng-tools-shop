@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工程自動化工具平台 | 提升內業效率</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        industry: { 900: '#1e293b', 800: '#334155', 500: '#64748b', accent: '#f59e0b' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 antialiased relative">
+
+    <!-- 頂部導覽列 -->
+    <nav class="bg-industry-900 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+            <div class="flex items-center space-x-3">
+                <span class="font-bold text-xl tracking-wider cursor-pointer" onclick="window.scrollTo(0,0)">工程自動化工具集</span>
+            </div>
+            <div class="hidden md:flex space-x-2">
+                <a href="#products" class="hover:text-industry-accent px-3 py-2 rounded-md text-sm font-medium transition-colors">工具列表</a>
+                <a href="javascript:void(0)" onclick="openInfoModal('教學')" class="hover:text-industry-accent px-3 py-2 rounded-md text-sm font-medium transition-colors">使用教學</a>
+                <a href="javascript:void(0)" onclick="openInfoModal('FAQ')" class="hover:text-industry-accent px-3 py-2 rounded-md text-sm font-medium transition-colors">常見問題</a>
+                <a href="javascript:void(0)" onclick="openInfoModal('客服')" class="hover:text-industry-accent px-3 py-2 rounded-md text-sm font-medium transition-colors">聯繫客服</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 視覺焦點區 -->
+    <div class="bg-industry-800 text-white py-20 border-b-4 border-industry-accent text-center">
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-6">專為工程人打造的高效輔助工具</h1>
+        <p class="text-lg text-industry-500 mb-8 max-w-2xl mx-auto">涵蓋 Excel VBA 照片管理、公文 OCR 自動更名與 AutoCAD 快速標註，大幅縮減品管查核與內業文書時間。</p>
+    </div>
+
+    <!-- 產品列表區塊 -->
+    <div id="products" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 class="text-3xl font-bold text-industry-900 mb-10 border-l-4 border-industry-accent pl-4">精選工具清單</h2>
+        <div id="product-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="col-span-full text-center text-gray-500 py-10">載入中...</div>
+        </div>
+    </div>
+
+    <!-- ================= 商品詳細資訊彈出視窗 (Modal) ================= -->
+    <div id="product-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 overflow-y-auto flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden relative mt-10 mb-10">
+            <button onclick="closeModal()" class="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-800 bg-white hover:bg-gray-200 rounded-full p-2 shadow transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="p-8">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <!-- 上半部左側：圖片輪播區 -->
+                    <div class="md:w-1/2 relative bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden h-64 md:h-72">
+                        <img id="modal-image" src="" class="w-full h-full object-contain p-2">
+                        <button id="btn-prev-img" onclick="prevImage()" class="hidden absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all">◀</button>
+                        <button id="btn-next-img" onclick="nextImage()" class="hidden absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all">▶</button>
+                        <div id="img-indicator" class="hidden absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full"></div>
+                    </div>
+                    <!-- 上半部右側：基本資訊 -->
+                    <div class="md:w-1/2 flex flex-col">
+                        <div class="mb-4">
+                            <span id="modal-category" class="bg-industry-900 text-white text-xs px-2 py-1 rounded shadow"></span>
+                            <span id="modal-version" class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-1 rounded border border-gray-200 ml-2"></span>
+                        </div>
+                        <h3 id="modal-title" class="text-2xl font-bold text-gray-900 mb-3 leading-tight"></h3>
+                        <p id="modal-desc" class="text-gray-600 text-sm mb-6"></p>
+                        <div id="modal-price-area" class="mt-auto bg-gray-50 p-4 rounded-lg border border-gray-200"></div>
+                    </div>
+                </div>
+                <!-- 下半部：詳細說明 -->
+                <div class="mt-8 border-t border-gray-200 pt-6">
+                    <h4 class="text-lg font-bold text-gray-900 mb-3 border-l-4 border-industry-accent pl-2">🛠️ 核心特色</h4>
+                    <div id="modal-features" class="text-gray-700 text-sm mb-6 leading-relaxed whitespace-pre-line bg-gray-50 p-4 rounded-md"></div>
+                    <h4 class="text-lg font-bold text-gray-900 mb-3 border-l-4 border-industry-accent pl-2">📝 最新更新說明</h4>
+                    <div id="modal-updatelog" class="text-gray-700 text-sm leading-relaxed mb-6 whitespace-pre-line bg-gray-50 p-4 rounded-md"></div>
+                    <!-- 購買與結帳區塊 -->
+                    <div class="flex flex-col pt-4 border-t border-gray-100">
+                        <div class="flex justify-end">
+                            <button id="modal-action-btn" class="bg-industry-900 hover:bg-industry-800 text-white text-lg font-semibold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1"></button>
+                        </div>
+                        <!-- 動態展開的 Email 填寫表單 -->
+                        <div id="checkout-form-area" class="hidden mt-4 p-5 bg-blue-50 border border-blue-200 rounded-lg shadow-inner transition-all duration-300">
+                            <h5 class="font-bold text-blue-900 mb-2">接收檔案與授權</h5>
+                            <p class="text-sm text-blue-700 mb-3">請填寫您常用的 Email，付款完成後系統將自動發送壓縮檔至此信箱。</p>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <input type="email" id="buyer-email" placeholder="請輸入 Email (例: example@gmail.com)" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <button id="confirm-checkout-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg shadow transition-colors whitespace-nowrap">
+                                    確認並前往付款
+                                </button>
+                            </div>
+                            <p id="email-error" class="text-red-500 text-sm mt-2 hidden">⚠️ 請輸入有效的 Email 格式</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 教學/FAQ/客服 資訊彈出視窗 ================= -->
+    <div id="info-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 overflow-y-auto flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden relative mt-10 mb-10">
+            <button onclick="closeInfoModal()" class="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="p-8">
+                <h3 id="info-modal-title" class="text-2xl font-bold text-industry-900 mb-6 border-l-4 border-industry-accent pl-3">標題</h3>
+                <div id="info-modal-content" class="space-y-4">
+                    <!-- 內容由 JS 動態塞入 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 鎖定專屬前端資料庫 (商品清單 CSV)
+        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTp95MfBgtgoU1q-Fes8aOFc_6vd61puUzKxdbNElwcRuEVHfR91Wd8TYcTBLBFYqbAb1VKHO16RnXM/pub?gid=0&single=true&output=csv';
+        
+        // 【重要】請將下方網址替換為你「網站設定」分頁發布的專屬 CSV 網址
+        const SETTINGS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTp95MfBgtgoU1q-Fes8aOFc_6vd61puUzKxdbNElwcRuEVHfR91Wd8TYcTBLBFYqbAb1VKHO16RnXM/pub?gid=1840928189&single=true&output=csv'; 
+
+        // 鎖定專屬後端 API (訂單寫入 GAS)
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzjijBQ4rWwDX2AMDaxg3PalxJM080MXm1jdC_P-7JdHGqWdWAySfqSlQY3SmEChdF93A/exec';
+
+        let allProductsData = [];
+        let siteSettingsData = [];
+        let currentModalImages = []; 
+        let currentImgIndex = 0;     
+
+        // 讀取商品資料庫
+        Papa.parse(SHEET_CSV_URL, {
+            download: true,
+            header: true,
+            complete: function(results) {
+                allProductsData = results.data;
+                const container = document.getElementById('product-container');
+                container.innerHTML = ''; 
+
+                allProductsData.forEach((item, index) => {
+                    if(item.Status !== '上架') return;
+
+                    let priceHtml = '';
+                    let badgeHtml = '';
+                    if(item.Plan_Type === '免費版') {
+                        badgeHtml = `<span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-green-400">免費版</span>`;
+                        priceHtml = `<span class="text-2xl font-bold text-green-600">免費下載</span>`;
+                    } else {
+                        badgeHtml = `<span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-blue-400">Pro 付費版</span>`;
+                        priceHtml = `<span class="text-sm text-gray-500 line-through mr-2">NT$ ${item.Price_Origin}</span>
+                                     <span class="text-2xl font-bold text-red-600">NT$ ${item.Price_Sale}</span>`;
+                    }
+
+                    let rawUrls = item.Image_URL ? item.Image_URL : '';
+                    let coverImageUrl = rawUrls.split(',')[0].trim() || 'https://via.placeholder.com/400x250/334155/ffffff?text=No+Image';
+
+                    const card = `
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-gray-200 flex flex-col cursor-pointer" onclick="openModal(${index})">
+                            <div class="relative h-48 bg-gray-200 p-2">
+                                <img src="${coverImageUrl}" alt="${item.Tool_Name}" class="w-full h-full object-contain">
+                                <div class="absolute top-2 right-2">${badgeHtml}</div>
+                                <div class="absolute bottom-2 left-2 bg-industry-900 text-white text-xs px-2 py-1 rounded shadow">${item.Category}</div>
+                            </div>
+                            <div class="p-6 flex-grow flex flex-col">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="text-xl font-bold text-gray-900 leading-tight">${item.Tool_Name}</h3>
+                                    <span class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-1 rounded ml-2 whitespace-nowrap">${item.Version}</span>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-4 flex-grow">${item.Short_Desc}</p>
+                                <div class="mb-4">${priceHtml}</div>
+                                <button class="w-full text-center border-2 border-industry-900 text-industry-900 font-semibold py-2 px-4 rounded hover:bg-industry-900 hover:text-white transition-colors">
+                                    🔍 查看詳情
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += card;
+                });
+            }
+        });
+
+        // 讀取網站設定資料庫 (教學/FAQ/客服)
+        Papa.parse(SETTINGS_CSV_URL, {
+            download: true,
+            header: true,
+            complete: function(results) {
+                siteSettingsData = results.data;
+            }
+        });
+
+        // 打開商品 Modal
+        function openModal(index) {
+            const item = allProductsData[index];
+            const checkoutArea = document.getElementById('checkout-form-area');
+            const emailInput = document.getElementById('buyer-email');
+            const emailError = document.getElementById('email-error');
+            const confirmBtn = document.getElementById('confirm-checkout-btn');
+            
+            checkoutArea.classList.add('hidden');
+            emailInput.value = '';
+            emailError.classList.add('hidden');
+            confirmBtn.innerText = '確認並前往付款';
+            confirmBtn.disabled = false;
+            
+            let rawUrls = item.Image_URL ? item.Image_URL : 'https://via.placeholder.com/800x600/334155/ffffff?text=No+Image';
+            currentModalImages = rawUrls.split(',').map(url => url.trim()).filter(url => url !== '');
+            currentImgIndex = 0;
+            updateModalImageDisplay();
+            
+            document.getElementById('modal-category').innerText = item.Category;
+            document.getElementById('modal-version').innerText = item.Version;
+            document.getElementById('modal-title').innerText = item.Tool_Name;
+            document.getElementById('modal-desc').innerText = item.Short_Desc;
+            
+            let featuresText = item.Features || '暫無詳細說明';
+            document.getElementById('modal-features').innerHTML = featuresText.replace(/<br>/g, '<br/>');
+            let logText = item.Update_Log || '無最新更新紀錄';
+            document.getElementById('modal-updatelog').innerHTML = logText.replace(/<br>/g, '<br/>');
+
+            const priceArea = document.getElementById('modal-price-area');
+            const actionBtn = document.getElementById('modal-action-btn');
+
+            if(item.Plan_Type === '免費版') {
+                priceArea.innerHTML = `<div class="text-sm text-gray-500 mb-1">授權方式</div><div class="text-3xl font-bold text-green-600">免費下載</div>`;
+                actionBtn.innerText = '📥 立即下載';
+                actionBtn.onclick = () => window.open(item.Download_Link, '_blank');
+            } else {
+                priceArea.innerHTML = `
+                    <div class="text-sm text-gray-500 mb-1">Pro 付費版授權</div>
+                    <div class="flex items-end gap-3">
+                        <span class="text-3xl font-bold text-red-600">NT$ ${item.Price_Sale}</span>
+                        <span class="text-lg text-gray-400 line-through mb-1">NT$ ${item.Price_Origin}</span>
+                    </div>
+                `;
+                actionBtn.innerText = '🛒 立即購買';
+                actionBtn.onclick = () => {
+                    checkoutArea.classList.remove('hidden');
+                    emailInput.focus();
+                    document.getElementById('product-modal').firstElementChild.scrollBy({ top: 200, behavior: 'smooth' });
+                };
+
+                confirmBtn.onclick = async () => {
+                    const email = emailInput.value.trim();
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+                    if (!emailRegex.test(email)) {
+                        emailError.classList.remove('hidden');
+                        return;
+                    }
+                    emailError.classList.add('hidden');
+                    confirmBtn.innerText = '資料寫入中...';
+                    confirmBtn.disabled = true;
+
+                    try {
+                        await fetch(GAS_API_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                toolName: item.Tool_Name,
+                                buyerEmail: email,
+                                price: item.Price_Sale
+                            })
+                        });
+                        alert(`訂單建立成功！\n即將導向付款頁面，您的檔案將發送至：\n${email}`);
+                        if (item.Download_Link) window.open(item.Download_Link, '_blank');
+                    } catch (error) {
+                        alert('系統連線發生錯誤，請稍後再試！');
+                    } finally {
+                        confirmBtn.innerText = '確認並前往付款';
+                        confirmBtn.disabled = false;
+                    }
+                };
+            }
+            document.getElementById('product-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 打開 資訊(教學/FAQ/客服) Modal
+        function openInfoModal(type) {
+            const modal = document.getElementById('info-modal');
+            const titleEl = document.getElementById('info-modal-title');
+            const contentEl = document.getElementById('info-modal-content');
+            
+            titleEl.innerText = type === '教學' ? '使用教學' : (type === 'FAQ' ? '常見問題' : '聯繫客服');
+            contentEl.innerHTML = '';
+
+            const filteredData = siteSettingsData.filter(item => item.Type === type);
+            
+            if (filteredData.length === 0) {
+                contentEl.innerHTML = '<p class="text-gray-500 text-center py-4">目前尚無資料，我們會盡快補充！</p>';
+            } else {
+                filteredData.forEach(item => {
+                    let linkHtml = '';
+                    if (item.Link) {
+                        if(item.Link.includes('@')) {
+                            linkHtml = `<a href="mailto:${item.Link}" class="text-industry-accent hover:underline font-bold mt-2 inline-block">✉️ ${item.Link}</a>`;
+                        } else {
+                            linkHtml = `<a href="${item.Link}" target="_blank" class="text-industry-accent hover:underline font-bold mt-2 inline-block">🔗 點擊查看連結</a>`;
+                        }
+                    }
+                    const block = `
+                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                            <h4 class="font-bold text-lg text-gray-900 mb-2">${item.Title}</h4>
+                            <p class="text-gray-700 whitespace-pre-line text-sm leading-relaxed">${item.Content.replace(/<br>/g, '<br/>')}</p>
+                            ${linkHtml}
+                        </div>
+                    `;
+                    contentEl.innerHTML += block;
+                });
+            }
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function updateModalImageDisplay() {
+            document.getElementById('modal-image').src = currentModalImages[currentImgIndex];
+            const btnPrev = document.getElementById('btn-prev-img');
+            const btnNext = document.getElementById('btn-next-img');
+            const indicator = document.getElementById('img-indicator');
+            if (currentModalImages.length > 1) {
+                btnPrev.classList.remove('hidden');
+                btnNext.classList.remove('hidden');
+                indicator.classList.remove('hidden');
+                indicator.innerText = `${currentImgIndex + 1} / ${currentModalImages.length}`;
+            } else {
+                btnPrev.classList.add('hidden');
+                btnNext.classList.add('hidden');
+                indicator.classList.add('hidden');
+            }
+        }
+        function nextImage() { currentImgIndex = (currentImgIndex + 1) % currentModalImages.length; updateModalImageDisplay(); }
+        function prevImage() { currentImgIndex = (currentImgIndex - 1 + currentModalImages.length) % currentModalImages.length; updateModalImageDisplay(); }
+        function closeModal() { document.getElementById('product-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; }
+        function closeInfoModal() { document.getElementById('info-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; }
+    </script>
+</body>
+</html>
