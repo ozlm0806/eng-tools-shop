@@ -50,7 +50,7 @@
     </div>
 
     <!-- ================= 商品詳細資訊彈出視窗 (Modal) ================= -->
-    <div id="product-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 overflow-y-auto flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div id="product-modal" class="hidden fixed inset-0 z-40 bg-black bg-opacity-70 overflow-y-auto flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden relative mt-10 mb-10">
             <button onclick="closeModal()" class="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-800 bg-white hover:bg-gray-200 rounded-full p-2 shadow transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -58,18 +58,23 @@
             <div class="p-8">
                 <div class="flex flex-col md:flex-row gap-6">
                     <!-- 上半部左側：圖片輪播區 -->
-                    <div class="md:w-1/2 relative bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden h-64 md:h-72">
-                        <img id="modal-image" src="" class="w-full h-full object-contain p-2">
-                        <button id="btn-prev-img" onclick="prevImage()" class="hidden absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all">◀</button>
-                        <button id="btn-next-img" onclick="nextImage()" class="hidden absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all">▶</button>
-                        <div id="img-indicator" class="hidden absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full"></div>
+                    <div class="md:w-1/2 relative bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden h-64 md:h-72 group">
+                        <!-- 加入放大圖示與可點擊屬性 -->
+                        <img id="modal-image" src="" onclick="openLightbox()" class="w-full h-full object-contain p-2 cursor-zoom-in transition-transform duration-300 group-hover:scale-105" title="點擊放大圖片">
+                        
+                        <button id="btn-prev-img" onclick="prevImage(event)" class="hidden absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all z-10">◀</button>
+                        <button id="btn-next-img" onclick="nextImage(event)" class="hidden absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all z-10">▶</button>
+                        <div id="img-indicator" class="hidden absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full pointer-events-none z-10"></div>
+                        
+                        <!-- 放大提示浮水印 -->
+                        <div class="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">🔍 點擊放大</div>
                     </div>
                     <!-- 上半部右側：基本資訊 -->
                     <div class="md:w-1/2 flex flex-col">
                         <div class="mb-4 flex flex-wrap items-center gap-2">
                             <span id="modal-category" class="bg-industry-900 text-white text-xs px-2 py-1 rounded shadow"></span>
                             <span id="modal-version" class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-1 rounded border border-gray-200"></span>
-                            <!-- 新增：已購買人次標籤 -->
+                            <!-- 已購買人次標籤 -->
                             <span id="modal-sales" class="hidden bg-red-50 text-red-600 text-xs font-bold px-2 py-1 rounded border border-red-200 shadow-sm">
                                 🔥 已售出 <span id="sales-count-number">0</span> 套
                             </span>
@@ -108,8 +113,17 @@
         </div>
     </div>
 
+    <!-- ================= 圖片放大全螢幕視窗 (Lightbox) ================= -->
+    <div id="lightbox-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4 backdrop-blur-md transition-opacity cursor-zoom-out" onclick="closeLightbox()">
+        <button onclick="closeLightbox()" class="absolute top-6 right-6 z-10 text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-full p-2 shadow transition-colors">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <!-- 阻止點擊圖片時關閉視窗的冒泡事件 -->
+        <img id="lightbox-image" src="" class="max-w-full max-h-full object-contain shadow-2xl cursor-default" onclick="event.stopPropagation()">
+    </div>
+
     <!-- ================= 教學/FAQ/客服 資訊彈出視窗 ================= -->
-    <div id="info-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 overflow-y-auto flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div id="info-modal" class="hidden fixed inset-0 z-40 bg-black bg-opacity-70 overflow-y-auto flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden relative mt-10 mb-10">
             <button onclick="closeInfoModal()" class="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -330,6 +344,7 @@
             document.body.style.overflow = 'hidden';
         }
 
+        // 圖片顯示與切換邏輯
         function updateModalImageDisplay() {
             document.getElementById('modal-image').src = currentModalImages[currentImgIndex];
             const btnPrev = document.getElementById('btn-prev-img');
@@ -346,8 +361,30 @@
                 indicator.classList.add('hidden');
             }
         }
-        function nextImage() { currentImgIndex = (currentImgIndex + 1) % currentModalImages.length; updateModalImageDisplay(); }
-        function prevImage() { currentImgIndex = (currentImgIndex - 1 + currentModalImages.length) % currentModalImages.length; updateModalImageDisplay(); }
+        
+        // 切換圖片 (加入 event.stopPropagation 防止觸發放大視窗)
+        function nextImage(event) { 
+            if(event) event.stopPropagation(); 
+            currentImgIndex = (currentImgIndex + 1) % currentModalImages.length; 
+            updateModalImageDisplay(); 
+        }
+        function prevImage(event) { 
+            if(event) event.stopPropagation(); 
+            currentImgIndex = (currentImgIndex - 1 + currentModalImages.length) % currentModalImages.length; 
+            updateModalImageDisplay(); 
+        }
+
+        // 開關圖片放大視窗 (Lightbox)
+        function openLightbox() {
+            const currentImgSrc = document.getElementById('modal-image').src;
+            document.getElementById('lightbox-image').src = currentImgSrc;
+            document.getElementById('lightbox-modal').classList.remove('hidden');
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox-modal').classList.add('hidden');
+        }
+
+        // 關閉 Modal
         function closeModal() { document.getElementById('product-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; }
         function closeInfoModal() { document.getElementById('info-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; }
     </script>
