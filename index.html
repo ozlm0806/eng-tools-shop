@@ -137,8 +137,16 @@
         <button onclick="closeLightbox()" class="absolute top-4 right-4 md:top-6 md:right-6 z-10 text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-full p-2 shadow transition-colors">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
+        
+        <!-- 新增：Lightbox 內的左右切換按鈕 -->
+        <button id="btn-prev-lightbox" onclick="prevImage(event)" class="hidden absolute left-2 md:left-8 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center transition-all z-10 cursor-pointer">◀</button>
+        <button id="btn-next-lightbox" onclick="nextImage(event)" class="hidden absolute right-2 md:right-8 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center transition-all z-10 cursor-pointer">▶</button>
+        
+        <!-- 新增：Lightbox 內的頁碼指示器 -->
+        <div id="lightbox-indicator" class="hidden absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white text-sm px-3 py-1 rounded-full pointer-events-none z-10"></div>
+
         <!-- 阻止點擊圖片時關閉視窗的冒泡事件 -->
-        <img id="lightbox-image" src="" class="max-w-full max-h-full object-contain shadow-2xl cursor-default" onclick="event.stopPropagation()">
+        <img id="lightbox-image" src="" class="max-w-full max-h-full object-contain shadow-2xl cursor-default transition-all duration-300" onclick="event.stopPropagation()">
     </div>
 
     <!-- ================= 教學/FAQ/客服 資訊彈出視窗 ================= -->
@@ -369,21 +377,41 @@
             document.body.style.overflow = 'hidden';
         }
 
-        // 圖片顯示與切換邏輯
+        // 圖片顯示與切換邏輯 (修改處：同步更新 Lightbox 的圖片與控制項)
         function updateModalImageDisplay() {
+            // 更新一般視窗的圖片
             document.getElementById('modal-image').src = currentModalImages[currentImgIndex];
+            // 更新放大視窗的圖片 (確保兩邊同步)
+            document.getElementById('lightbox-image').src = currentModalImages[currentImgIndex];
+            
             const btnPrev = document.getElementById('btn-prev-img');
             const btnNext = document.getElementById('btn-next-img');
             const indicator = document.getElementById('img-indicator');
+            
+            const btnPrevLb = document.getElementById('btn-prev-lightbox');
+            const btnNextLb = document.getElementById('btn-next-lightbox');
+            const indicatorLb = document.getElementById('lightbox-indicator');
+
             if (currentModalImages.length > 1) {
+                // 顯示一般視窗控制項
                 btnPrev.classList.remove('hidden');
                 btnNext.classList.remove('hidden');
                 indicator.classList.remove('hidden');
                 indicator.innerText = `${currentImgIndex + 1} / ${currentModalImages.length}`;
+                
+                // 顯示放大視窗控制項
+                btnPrevLb.classList.remove('hidden');
+                btnNextLb.classList.remove('hidden');
+                indicatorLb.classList.remove('hidden');
+                indicatorLb.innerText = `${currentImgIndex + 1} / ${currentModalImages.length}`;
             } else {
                 btnPrev.classList.add('hidden');
                 btnNext.classList.add('hidden');
                 indicator.classList.add('hidden');
+                
+                btnPrevLb.classList.add('hidden');
+                btnNextLb.classList.add('hidden');
+                indicatorLb.classList.add('hidden');
             }
         }
         
@@ -401,8 +429,7 @@
 
         // 開關圖片放大視窗 (Lightbox)
         function openLightbox() {
-            const currentImgSrc = document.getElementById('modal-image').src;
-            document.getElementById('lightbox-image').src = currentImgSrc;
+            // 由於 updateModalImageDisplay 已經幫我們把圖片同步好了，這裡只要純粹負責顯示彈窗即可
             document.getElementById('lightbox-modal').classList.remove('hidden');
         }
         function closeLightbox() {
