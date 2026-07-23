@@ -32,6 +32,7 @@
                 <a href="#products" class="hover:text-industry-accent px-3 py-2 rounded-md text-sm font-medium transition-colors">工具列表</a>
                 <a href="javascript:void(0)" onclick="openInfoModal('教學')" class="hover:text-industry-accent px-3 py-2 rounded-md text-sm font-medium transition-colors">使用教學</a>
                 <a href="javascript:void(0)" onclick="openInfoModal('FAQ')" class="hover:text-industry-accent px-3 py-2 rounded-md text-sm font-medium transition-colors">常見問題</a>
+                <a href="javascript:void(0)" onclick="openInfoModal('條款')" class="hover:text-industry-accent px-3 py-2 rounded-md text-sm font-medium transition-colors">條款與權益</a>
                 <a href="javascript:void(0)" onclick="openInfoModal('客服')" class="hover:text-industry-accent px-3 py-2 rounded-md text-sm font-medium transition-colors">聯繫客服</a>
             </div>
 
@@ -50,6 +51,7 @@
             <a href="#products" onclick="toggleMobileMenu()" class="block hover:bg-industry-900 hover:text-industry-accent px-3 py-2 rounded-md text-base font-medium">工具列表</a>
             <a href="javascript:void(0)" onclick="openInfoModal('教學'); toggleMobileMenu()" class="block hover:bg-industry-900 hover:text-industry-accent px-3 py-2 rounded-md text-base font-medium">使用教學</a>
             <a href="javascript:void(0)" onclick="openInfoModal('FAQ'); toggleMobileMenu()" class="block hover:bg-industry-900 hover:text-industry-accent px-3 py-2 rounded-md text-base font-medium">常見問題</a>
+            <a href="javascript:void(0)" onclick="openInfoModal('條款'); toggleMobileMenu()" class="block hover:bg-industry-900 hover:text-industry-accent px-3 py-2 rounded-md text-base font-medium">條款與權益</a>
             <a href="javascript:void(0)" onclick="openInfoModal('客服'); toggleMobileMenu()" class="block hover:bg-industry-900 hover:text-industry-accent px-3 py-2 rounded-md text-base font-medium">聯繫客服</a>
         </div>
     </nav>
@@ -67,7 +69,7 @@
             <div class="col-span-full text-center text-gray-500 py-10">載入中...</div>
         </div>
     </div>
-    <!-- ================= 頁尾與計數器 ================= -->
+
     <!-- ================= 頁尾與計數器 ================= -->
     <footer class="text-center py-10 border-t border-gray-200 mt-4">
         <p class="text-gray-500 text-sm mb-3">© 2026 工程自動化工具平台. All rights reserved.</p>
@@ -76,6 +78,7 @@
             <img src="https://hits.sh/ozlm0806.github.io/eng-tools-shop.svg?color=1e293b&label=%E7%B6%B2%E7%AB%99%E8%A8%AA%E5%AE%A2" alt="Hits" class="shadow-sm rounded hover:scale-105 transition-transform cursor-default"/>
         </div>
     </footer>
+
     <!-- ================= 商品詳細資訊彈出視窗 (Modal) ================= -->
     <div id="product-modal" class="hidden fixed inset-0 z-40 bg-black bg-opacity-70 overflow-y-auto flex items-start justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden relative mt-10 mb-10">
@@ -86,14 +89,12 @@
                 <div class="flex flex-col md:flex-row gap-6">
                     <!-- 上半部左側：圖片輪播區 -->
                     <div class="md:w-1/2 relative bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden h-64 md:h-72 group">
-                        <!-- 加入放大圖示與可點擊屬性 -->
                         <img id="modal-image" src="" onclick="openLightbox()" class="w-full h-full object-contain p-2 cursor-zoom-in transition-transform duration-300 group-hover:scale-105" title="點擊放大圖片">
                         
                         <button id="btn-prev-img" onclick="prevImage(event)" class="hidden absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all z-10">◀</button>
                         <button id="btn-next-img" onclick="nextImage(event)" class="hidden absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all z-10">▶</button>
                         <div id="img-indicator" class="hidden absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full pointer-events-none z-10"></div>
                         
-                        <!-- 放大提示浮水印 -->
                         <div class="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">🔍 點擊放大</div>
                     </div>
                     <!-- 上半部右側：基本資訊 -->
@@ -101,7 +102,6 @@
                         <div class="mb-4 flex flex-wrap items-center gap-2">
                             <span id="modal-category" class="bg-industry-900 text-white text-xs px-2 py-1 rounded shadow"></span>
                             <span id="modal-version" class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-1 rounded border border-gray-200"></span>
-                            <!-- 已購買人次標籤 -->
                             <span id="modal-sales" class="hidden bg-red-50 text-red-600 text-xs font-bold px-2 py-1 rounded border border-red-200 shadow-sm">
                                 🔥 已售出 <span id="sales-count-number">0</span> 套
                             </span>
@@ -122,7 +122,6 @@
                         <div class="flex justify-end">
                             <button id="modal-action-btn" class="bg-industry-900 hover:bg-industry-800 text-white text-lg font-semibold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 w-full md:w-auto"></button>
                         </div>
-                        <!-- 動態展開的 Email 填寫表單 -->
                         <div id="checkout-form-area" class="hidden mt-4 p-4 md:p-5 bg-blue-50 border border-blue-200 rounded-lg shadow-inner transition-all duration-300">
                             <h5 class="font-bold text-blue-900 mb-2">接收檔案與授權</h5>
                             <p class="text-sm text-blue-700 mb-3">請填寫您常用的 Email，付款完成後系統將自動發送壓縮檔至此信箱。</p>
@@ -146,18 +145,15 @@
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
         
-        <!-- 新增：Lightbox 內的左右切換按鈕 -->
         <button id="btn-prev-lightbox" onclick="prevImage(event)" class="hidden absolute left-2 md:left-8 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center transition-all z-10 cursor-pointer">◀</button>
         <button id="btn-next-lightbox" onclick="nextImage(event)" class="hidden absolute right-2 md:right-8 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-80 text-white rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center transition-all z-10 cursor-pointer">▶</button>
         
-        <!-- 新增：Lightbox 內的頁碼指示器 -->
         <div id="lightbox-indicator" class="hidden absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white text-sm px-3 py-1 rounded-full pointer-events-none z-10"></div>
 
-        <!-- 阻止點擊圖片時關閉視窗的冒泡事件 -->
         <img id="lightbox-image" src="" class="max-w-full max-h-full object-contain shadow-2xl cursor-default transition-all duration-300" onclick="event.stopPropagation()">
     </div>
 
-    <!-- ================= 教學/FAQ/客服 資訊彈出視窗 ================= -->
+    <!-- ================= 資訊彈出視窗 (教學/FAQ/條款/客服) ================= -->
     <div id="info-modal" class="hidden fixed inset-0 z-40 bg-black bg-opacity-70 overflow-y-auto flex items-start justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden relative mt-10 mb-10">
             <button onclick="closeInfoModal()" class="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow transition-colors">
@@ -173,19 +169,13 @@
     </div>
 
     <script>
-        // 手機版選單切換
         function toggleMobileMenu() {
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('hidden');
         }
 
-        // 鎖定專屬前端資料庫 (商品清單 CSV)
         const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTp95MfBgtgoU1q-Fes8aOFc_6vd61puUzKxdbNElwcRuEVHfR91Wd8TYcTBLBFYqbAb1VKHO16RnXM/pub?gid=0&single=true&output=csv';
-        
-        // 鎖定專屬網站設定 (教學/FAQ/客服 CSV)
         const SETTINGS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTp95MfBgtgoU1q-Fes8aOFc_6vd61puUzKxdbNElwcRuEVHfR91Wd8TYcTBLBFYqbAb1VKHO16RnXM/pub?gid=1840928189&single=true&output=csv'; 
-
-        // 鎖定專屬後端 API (訂單寫入 GAS)
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzjijBQ4rWwDX2AMDaxg3PalxJM080MXm1jdC_P-7JdHGqWdWAySfqSlQY3SmEChdF93A/exec';
 
         let allProductsData = [];
@@ -193,7 +183,6 @@
         let currentModalImages = []; 
         let currentImgIndex = 0;     
 
-        // 讀取商品資料庫
         Papa.parse(SHEET_CSV_URL, {
             download: true,
             header: true,
@@ -244,7 +233,6 @@
             }
         });
 
-        // 讀取網站設定資料庫 (教學/FAQ/客服)
         Papa.parse(SETTINGS_CSV_URL, {
             download: true,
             header: true,
@@ -253,7 +241,6 @@
             }
         });
 
-        // 打開商品 Modal
         function openModal(index) {
             const item = allProductsData[index];
             const checkoutArea = document.getElementById('checkout-form-area');
@@ -261,7 +248,6 @@
             const emailError = document.getElementById('email-error');
             const confirmBtn = document.getElementById('confirm-checkout-btn');
             
-            // 處理「已購買人次」標籤邏輯
             const salesBadge = document.getElementById('modal-sales');
             const salesNumber = document.getElementById('sales-count-number');
             if (item.Sales_Count && parseInt(item.Sales_Count) > 0) {
@@ -348,13 +334,18 @@
             document.body.style.overflow = 'hidden';
         }
 
-        // 打開 資訊(教學/FAQ/客服) Modal
+        // 打開 資訊 Modal (教學/FAQ/條款/客服)
         function openInfoModal(type) {
             const modal = document.getElementById('info-modal');
             const titleEl = document.getElementById('info-modal-title');
             const contentEl = document.getElementById('info-modal-content');
             
-            titleEl.innerText = type === '教學' ? '使用教學' : (type === 'FAQ' ? '常見問題' : '聯繫客服');
+            // 標題顯示邏輯
+            if (type === '教學') titleEl.innerText = '使用教學';
+            else if (type === 'FAQ') titleEl.innerText = '常見問題';
+            else if (type === '條款') titleEl.innerText = '服務條款與消費者權益';
+            else titleEl.innerText = '聯繫客服';
+
             contentEl.innerHTML = '';
 
             const filteredData = siteSettingsData.filter(item => item.Type === type);
@@ -385,11 +376,8 @@
             document.body.style.overflow = 'hidden';
         }
 
-        // 圖片顯示與切換邏輯 (修改處：同步更新 Lightbox 的圖片與控制項)
         function updateModalImageDisplay() {
-            // 更新一般視窗的圖片
             document.getElementById('modal-image').src = currentModalImages[currentImgIndex];
-            // 更新放大視窗的圖片 (確保兩邊同步)
             document.getElementById('lightbox-image').src = currentModalImages[currentImgIndex];
             
             const btnPrev = document.getElementById('btn-prev-img');
@@ -401,13 +389,11 @@
             const indicatorLb = document.getElementById('lightbox-indicator');
 
             if (currentModalImages.length > 1) {
-                // 顯示一般視窗控制項
                 btnPrev.classList.remove('hidden');
                 btnNext.classList.remove('hidden');
                 indicator.classList.remove('hidden');
                 indicator.innerText = `${currentImgIndex + 1} / ${currentModalImages.length}`;
                 
-                // 顯示放大視窗控制項
                 btnPrevLb.classList.remove('hidden');
                 btnNextLb.classList.remove('hidden');
                 indicatorLb.classList.remove('hidden');
@@ -423,7 +409,6 @@
             }
         }
         
-        // 切換圖片 (加入 event.stopPropagation 防止觸發放大視窗)
         function nextImage(event) { 
             if(event) event.stopPropagation(); 
             currentImgIndex = (currentImgIndex + 1) % currentModalImages.length; 
@@ -435,16 +420,13 @@
             updateModalImageDisplay(); 
         }
 
-        // 開關圖片放大視窗 (Lightbox)
         function openLightbox() {
-            // 由於 updateModalImageDisplay 已經幫我們把圖片同步好了，這裡只要純粹負責顯示彈窗即可
             document.getElementById('lightbox-modal').classList.remove('hidden');
         }
         function closeLightbox() {
             document.getElementById('lightbox-modal').classList.add('hidden');
         }
 
-        // 關閉 Modal
         function closeModal() { document.getElementById('product-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; }
         function closeInfoModal() { document.getElementById('info-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; }
     </script>
