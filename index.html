@@ -79,6 +79,27 @@
         </div>
     </footer>
 
+    <!-- ================= 系統公告彈出視窗 (Announcement Modal) ================= -->
+    <div id="announcement-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden relative transform transition-all">
+            <button onclick="closeAnnouncement()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="p-6 md:p-8 text-center">
+                <div class="w-16 h-16 mx-auto mb-4 bg-yellow-100 rounded-full flex items-center justify-center shadow-inner">
+                    <span class="text-3xl">📢</span>
+                </div>
+                <!-- 標題與內容由 JS 動態從試算表塞入 -->
+                <h3 id="announcement-title" class="text-2xl font-bold text-gray-900 mb-3">系統公告</h3>
+                <p id="announcement-content" class="text-gray-600 mb-6 leading-relaxed text-left inline-block whitespace-pre-line"></p>
+                
+                <button onclick="closeAnnouncement()" class="w-full bg-industry-900 hover:bg-industry-800 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:-translate-y-1">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ================= 商品詳細資訊彈出視窗 (Modal) ================= -->
     <div id="product-modal" class="hidden fixed inset-0 z-40 bg-black bg-opacity-70 overflow-y-auto flex items-start justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden relative mt-10 mb-10">
@@ -238,6 +259,23 @@
             header: true,
             complete: function(results) {
                 siteSettingsData = results.data;
+                
+                // --- 讀取並顯示公告邏輯 ---
+                const announcementData = siteSettingsData.find(item => item.Type === '公告');
+                
+                // 如果試算表裡有 Type 為「公告」的資料，且內容不是空的
+                if (announcementData && announcementData.Content && announcementData.Content.trim() !== '') {
+                    // 檢查瀏覽器暫存，如果這次瀏覽還沒看過公告，才顯示出來
+                    if (!sessionStorage.getItem('hasSeenAnnouncement')) {
+                        // 將試算表的標題與內容塞進 HTML，並支援 <br> 換行
+                        document.getElementById('announcement-title').innerText = announcementData.Title || '系統公告';
+                        document.getElementById('announcement-content').innerHTML = announcementData.Content.replace(/<br>/g, '<br/>');
+                        
+                        const annModal = document.getElementById('announcement-modal');
+                        annModal.classList.remove('hidden');
+                        document.body.style.overflow = 'hidden'; // 鎖定背景滾動
+                    }
+                }
             }
         });
 
@@ -429,6 +467,13 @@
 
         function closeModal() { document.getElementById('product-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; }
         function closeInfoModal() { document.getElementById('info-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; }
+        
+        // 關閉公告並寫入暫存
+        function closeAnnouncement() {
+            document.getElementById('announcement-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto'; 
+            sessionStorage.setItem('hasSeenAnnouncement', 'true');
+        }
     </script>
 </body>
 </html>
