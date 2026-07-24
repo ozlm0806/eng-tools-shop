@@ -338,7 +338,7 @@
                     document.getElementById('product-modal').firstElementChild.scrollBy({ top: 200, behavior: 'smooth' });
                 };
 
-confirmBtn.onclick = async () => {
+                confirmBtn.onclick = async () => {
                     const email = emailInput.value.trim();
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
                     if (!emailRegex.test(email)) {
