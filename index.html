@@ -338,7 +338,7 @@
                     document.getElementById('product-modal').firstElementChild.scrollBy({ top: 200, behavior: 'smooth' });
                 };
 
-                confirmBtn.onclick = async () => {
+confirmBtn.onclick = async () => {
                     const email = emailInput.value.trim();
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
                     if (!emailRegex.test(email)) {
@@ -346,11 +346,11 @@
                         return;
                     }
                     emailError.classList.add('hidden');
-                    confirmBtn.innerText = '資料寫入中...';
+                    confirmBtn.innerText = '準備跳轉至金流頁面...';
                     confirmBtn.disabled = true;
 
                     try {
-                        await fetch(GAS_API_URL, {
+                        const response = await fetch(GAS_API_URL, {
                             method: 'POST',
                             body: JSON.stringify({
                                 toolName: item.Tool_Name,
@@ -358,11 +358,40 @@
                                 price: item.Price_Sale
                             })
                         });
-                        alert(`訂單建立成功！\n即將導向付款頁面，您的檔案將發送至：\n${email}`);
-                        if (item.Download_Link) window.open(item.Download_Link, '_blank');
+                        
+                        const resData = await response.json();
+
+                        if (resData.status === 'success') {
+                            // 動態建立 Form 表單並自動 Submit 跳轉至藍新金流
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = resData.payUrl;
+
+                            const params = {
+                                'MerchantID': resData.merchantID,
+                                'TradeInfo': resData.tradeInfo,
+                                'TradeSha': resData.tradeSha,
+                                'Version': resData.version
+                            };
+
+                            for (const key in params) {
+                                const hiddenField = document.createElement('input');
+                                hiddenField.type = 'hidden';
+                                hiddenField.name = key;
+                                hiddenField.value = params[key];
+                                form.appendChild(hiddenField);
+                            }
+
+                            document.body.appendChild(form);
+                            form.submit(); // 自動送出表單跳轉
+                        } else {
+                            alert('建立訂單失敗，請稍後再試！');
+                            confirmBtn.innerText = '確認並前往付款';
+                            confirmBtn.disabled = false;
+                        }
+
                     } catch (error) {
                         alert('系統連線發生錯誤，請稍後再試！');
-                    } finally {
                         confirmBtn.innerText = '確認並前往付款';
                         confirmBtn.disabled = false;
                     }
