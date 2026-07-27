@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ozlm0806.github.io/eng-tools-shop/sitemap.xml
