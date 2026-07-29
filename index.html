@@ -529,5 +529,34 @@
             sessionStorage.setItem('hasSeenAnnouncement', 'true');
         }
     </script>
+<!-- FB Messenger 浮動客服按鈕 -->
+<a href="https://m.me/61592183627034" target="_blank" rel="noopener noreferrer" id="fb-chat-bubble" title="即時聯絡">
+  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white">
+    <path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.91 1.45 5.513 3.716 7.227V22l3.38-1.856c.925.257 1.91.398 2.904.398 5.523 0 10-4.145 10-9.258C22 6.145 17.523 2 12 2zm1.092 12.375l-2.55-2.723-4.978 2.723 5.474-5.813 2.614 2.723 4.914-2.723-5.474 5.813z"/>
+  </svg>
+</a>
+
+<style>
+  #fb-chat-bubble {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 60px;
+    height: 60px;
+    background-color: #0084FF;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    z-index: 9999;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  #fb-chat-bubble:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  }
+</style>    
 </body>
 </html>
