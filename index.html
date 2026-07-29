@@ -598,20 +598,19 @@
 
 </footer>
 <!-- === 社群連結頁尾區塊 結束 === -->
+HTML
 <script>
   function downloadAndPrompt(downloadUrl) {
-    // 1. 先開啟檔案下載連結 (在新分頁開啟)
-    window.open(downloadUrl, '_blank');
+    // 1. 先跳出提示框（此時畫面還停留在你的網站，不會被切走）
+    const followUs = confirm("🎉 即將為您開啟下載頁面！\n\n想學習更多工程軟體自動化教學嗎？\n點擊「確定」前往我們的 YouTube 頻道！");
     
-    // 2. 設定 0.5 秒的微小延遲後再跳出提示，讓瀏覽器有時間先處理下載，體驗更好
-    setTimeout(function() {
-      const followUs = confirm("🎉 檔案下載已開始！\n\n想學習更多工程軟體自動化教學嗎？\n點擊「確定」前往訂閱我們的 YouTube 頻道！");
-      
-      // 3. 如果使用者點擊「確定」，就幫他開新分頁到你的 YT 頻道
-      if (followUs) {
-        window.open('https://www.youtube.com/@eng-tools', '_blank');
-      }
-    }, 500);
+    // 2. 如果使用者點擊了「確定」，就幫他開一個新分頁到 YT
+    if (followUs) {
+      window.open('https://www.youtube.com/@eng-tools', '_blank');
+    }
+    
+    // 3. 不管剛剛按確定還是取消，最後都會幫他開啟 Google Drive
+    window.open(downloadUrl, '_blank');
   }
 </script>
 </body>
