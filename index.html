@@ -347,7 +347,7 @@
             if(item.Plan_Type === '免費版') {
                 priceArea.innerHTML = `<div class="text-sm text-gray-500 mb-1">授權方式</div><div class="text-3xl font-bold text-green-600">免費下載</div>`;
                 actionBtn.innerText = '📥 立即下載';
-                actionBtn.onclick = () => window.open(item.Download_Link, '_blank');
+                actionBtn.onclick = () => downloadAndPrompt(item.Download_Link);
             } else {
                 priceArea.innerHTML = `
                     <div class="text-sm text-gray-500 mb-1">Pro 付費版授權</div>
@@ -598,5 +598,21 @@
 
 </footer>
 <!-- === 社群連結頁尾區塊 結束 === -->
+<script>
+  function downloadAndPrompt(downloadUrl) {
+    // 1. 先開啟檔案下載連結 (在新分頁開啟)
+    window.open(downloadUrl, '_blank');
+    
+    // 2. 設定 0.5 秒的微小延遲後再跳出提示，讓瀏覽器有時間先處理下載，體驗更好
+    setTimeout(function() {
+      const followUs = confirm("🎉 檔案下載已開始！\n\n想學習更多工程軟體自動化教學嗎？\n點擊「確定」前往訂閱我們的 YouTube 頻道！");
+      
+      // 3. 如果使用者點擊「確定」，就幫他開新分頁到你的 YT 頻道
+      if (followUs) {
+        window.open('https://www.youtube.com/@eng-tools', '_blank');
+      }
+    }, 500);
+  }
+</script>
 </body>
 </html>
