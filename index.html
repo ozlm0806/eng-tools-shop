@@ -90,6 +90,16 @@
     <!-- 產品列表區塊 -->
     <div id="products" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 class="text-3xl font-bold text-industry-900 mb-10 border-l-4 border-industry-accent pl-4">精選工具清單</h2>
+    <!-- 💡 AI 導購首頁提示橫條 (位置 1) -->
+    <div class="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between text-blue-800 text-sm shadow-sm">
+    <div class="flex items-center space-x-2">
+    <span class="text-base">💡</span>
+    <span><strong>不知選哪款？</strong> 點擊右下角 <strong>AI 助手</strong>，說明你的工程需求，秒級為您推薦合適工具！</span>
+  </div>
+  <button onclick="toggleAIChat()" class="hidden sm:inline-block ml-3 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition">
+    立即諮詢 AI
+  </button>
+</div>
         <div id="product-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div class="col-span-full text-center text-gray-500 py-10">載入中...</div>
         </div>
