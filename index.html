@@ -631,7 +631,8 @@ async function sendAIMessage() {
     document.getElementById(loadingId).remove();
     
     // 3. 顯示 AI 的回覆
-    messagesContainer.innerHTML += `<div><div class="bg-white p-2 rounded-lg border border-gray-100 shadow-sm inline-block text-gray-700 whitespace-pre-wrap">${data.reply}</div></div>`;
+    const replyMsg = data.reply || data.message || JSON.stringify(data);
+    messagesContainer.innerHTML += `<div><div class="bg-white p-2 rounded-lg border border-gray-100 shadow-sm inline-block text-gray-700 whitespace-pre-wrap">${replyMsg}</div></div>`;
     
   } catch (error) {
     document.getElementById(loadingId).remove();
