@@ -558,6 +558,97 @@
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
   }
 </style>
+<!-- === 🤖 AI 導購客服區塊 (完全獨立新增) === -->
+<!-- AI 喚醒按鈕 (放在右下角 FB 按鈕上方) -->
+<button onclick="toggleAIChat()" class="fixed bottom-24 right-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg z-50 flex items-center justify-center transition-transform hover:scale-105" title="AI 工具推薦">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+  </svg>
+  <span class="ml-2 font-bold text-sm hidden sm:block">AI 導購</span>
+</button>
+
+<!-- AI 聊天對話框 (預設隱藏) -->
+<div id="ai-chat-window" class="hidden fixed bottom-40 right-4 w-80 h-96 bg-white border border-gray-200 rounded-lg shadow-2xl z-50 flex-col overflow-hidden">
+  <!-- 標題列 -->
+  <div class="bg-industry-900 text-white p-3 flex justify-between items-center">
+    <span class="font-bold">🤖 工程工具 AI 助手</span>
+    <button onclick="toggleAIChat()" class="text-white hover:text-gray-300">✖</button>
+  </div>
+  <!-- 聊天內容區 -->
+  <div id="ai-chat-messages" class="flex-1 p-4 overflow-y-auto bg-gray-50 text-sm space-y-3">
+    <div class="bg-white p-2 rounded-lg border border-gray-100 shadow-sm inline-block text-gray-700">
+      你好！我是 AI 助手。請問你在工程照片或公文處理上遇到什麼困難？我可以幫你推薦合適的工具喔！
+    </div>
+  </div>
+  <!-- 輸入區 -->
+  <div class="p-2 border-t border-gray-200 bg-white flex">
+    <input type="text" id="ai-chat-input" class="flex-1 border border-gray-300 rounded-l-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm text-gray-700" placeholder="例如：我想加日期浮水印...">
+    <button onclick="sendAIMessage()" id="ai-send-btn" class="bg-industry-900 text-white px-4 py-2 rounded-r-md hover:bg-industry-800 transition">傳送</button>
+  </div>
+</div>
+
+<script>
+// 控制聊天視窗開關
+function toggleAIChat() {
+  const chatWindow = document.getElementById('ai-chat-window');
+  chatWindow.classList.toggle('hidden');
+  chatWindow.classList.toggle('flex');
+}
+
+// 發送訊息給 GAS API
+async function sendAIMessage() {
+  const inputEl = document.getElementById('ai-chat-input');
+  const message = inputEl.value.trim();
+  if (!message) return;
+
+  const messagesContainer = document.getElementById('ai-chat-messages');
+  const sendBtn = document.getElementById('ai-send-btn');
+  
+  // 1. 顯示使用者的訊息
+  messagesContainer.innerHTML += `<div class="text-right"><div class="bg-blue-100 p-2 rounded-lg inline-block text-gray-800 text-left border border-blue-200 shadow-sm">${message}</div></div>`;
+  inputEl.value = '';
+  
+  // 2. 顯示讀取中動畫
+  const loadingId = 'loading-' + Date.now();
+  messagesContainer.innerHTML += `<div id="${loadingId}"><div class="bg-white p-2 rounded-lg border border-gray-100 shadow-sm inline-block text-gray-500">AI 思考中...</div></div>`;
+  messagesContainer.scrollTop = messagesContainer.scrollHeight; // 捲動到最底
+  
+  sendBtn.disabled = true;
+  sendBtn.innerText = '...';
+
+  try {
+    // 呼叫你的 GAS 網址 (請確認這裡的網址是你部署的 Web App URL)
+    const gasUrl = "https://script.google.com/macros/s/AKfycbxqqcwfEWBg6yllZm3eNN5BbyfMPXZOaOpEPU5wuJPn2HRDBDGd1VV6M2rGzjQiNz7RPw/exec";
+    
+    const response = await fetch(gasUrl, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'ai_chat', message: message })
+    });
+    
+    const data = await response.json();
+    
+    // 移除讀取中動畫
+    document.getElementById(loadingId).remove();
+    
+    // 3. 顯示 AI 的回覆
+    messagesContainer.innerHTML += `<div><div class="bg-white p-2 rounded-lg border border-gray-100 shadow-sm inline-block text-gray-700 whitespace-pre-wrap">${data.reply}</div></div>`;
+    
+  } catch (error) {
+    document.getElementById(loadingId).remove();
+    messagesContainer.innerHTML += `<div><div class="bg-red-50 p-2 rounded-lg border border-red-200 inline-block text-red-600">發生錯誤，請稍後再試。</div></div>`;
+  }
+  
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  sendBtn.disabled = false;
+  sendBtn.innerText = '傳送';
+}
+
+// 支援按下 Enter 鍵傳送
+document.getElementById('ai-chat-input').addEventListener('keypress', function (e) {
+  if (e.key === 'Enter') sendAIMessage();
+});
+</script>
+<!-- === AI 區塊結束 === -->
     <!-- === 社群連結頁尾區塊 開始 === -->
 <footer style="background-color: #f8f9fa; padding: 30px 0; text-align: center; border-top: 1px solid #e2e8f0; margin-top: 50px;">
   
