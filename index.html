@@ -17,6 +17,27 @@
 
       gtag('config', 'G-7208ES444N');
     </script>
+    <!-- ⬇️ 請把外掛監聽器貼在這裡 ⬇️ -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    document.body.addEventListener('click', function(e) {
+        var target = e.target.closest('button, a, div[role="button"]');
+        if (target) {
+            var btnText = target.innerText || target.textContent;
+            btnText = btnText.trim(); 
+            if (btnText.includes('立即購買')) {
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({'event': 'btn_click_buy'});
+            }
+            else if (btnText.includes('立即下載')) {
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({'event': 'btn_click_download'});
+            }
+        }
+    });
+});
+    </script>
+    <!-- ⬆️ 貼到這裡結束 ⬆️ -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
