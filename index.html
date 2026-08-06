@@ -312,6 +312,7 @@
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxqqcwfEWBg6yllZm3eNN5BbyfMPXZOaOpEPU5wuJPn2HRDBDGd1VV6M2rGzjQiNz7RPw/exec';
 
         let allProductsData = [];
+        let allReviewsData = []; // 🌟 新增：存放全站評價的空間
         let siteSettingsData = [];
         let currentModalImages = []; 
         let currentImgIndex = 0;     
@@ -385,7 +386,7 @@
                 });
             }
         });
-
+        preloadAllReviews(); // 🌟 新增：啟動背景預載評價
         Papa.parse(SETTINGS_CSV_URL, {
             download: true,
             header: true,
@@ -473,7 +474,7 @@
             document.getElementById('review-order-no').value = '';
             document.getElementById('review-comment').value = '';
             document.getElementById('review-rating').value = '5';
-            fetchReviews(item.Tool_Name);
+            renderReviews(item.Tool_Name); // 🌟 改為從記憶體瞬間讀取
             const priceArea = document.getElementById('modal-price-area');
             const actionBtn = document.getElementById('modal-action-btn');
 
@@ -712,33 +713,43 @@
             sessionStorage.setItem('hasSeenAnnouncement', 'true');
         }
         // ================= 階段二：評價系統專用 JS =================
-        async function fetchReviews(toolName) {
-            const container = document.getElementById('reviews-container');
-            container.innerHTML = '<div class="text-center text-gray-500 py-4">載入評價中...</div>';
+        // ================= 階段二：評價系統專用 JS =================
+        // 🌟 升級版：一進網頁就預抓全站評價
+        async function preloadAllReviews() {
             try {
-                const res = await fetch(`${GAS_API_URL}?action=getReviews&toolName=${encodeURIComponent(toolName)}`);
+                const res = await fetch(`${GAS_API_URL}?action=getAllReviews`);
                 const data = await res.json();
-                
-                if(data.success && data.reviews && data.reviews.length > 0) {
-                    let html = '';
-                    data.reviews.forEach(r => {
-                        let stars = '⭐'.repeat(Number(r.rating));
-                        html += `
-                        <div class="border-b border-gray-200 pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-sm font-bold text-gray-800">👤 ${r.reviewer}</span>
-                                <span class="text-xs text-gray-500">${r.date}</span>
-                            </div>
-                            <div class="text-sm mb-1">${stars}</div>
-                            <p class="text-sm text-gray-700">${r.comment.replace(/<br>/g, '<br/>')}</p>
-                        </div>`;
-                    });
-                    container.innerHTML = html;
-                } else {
-                    container.innerHTML = '<div class="text-center text-gray-500 py-4">目前尚無評價，成為第一個留下心得的人吧！</div>';
+                if (data.success && data.reviews) {
+                    allReviewsData = data.reviews;
                 }
             } catch(e) {
-                container.innerHTML = '<div class="text-center text-red-400 py-4">無法載入評價，請檢查網路狀態</div>';
+                console.log('評價預載失敗');
+            }
+        }
+
+        // 🌟 瞬間渲染評價 (0 延遲)
+        function renderReviews(toolName) {
+            const container = document.getElementById('reviews-container');
+            // 從我們剛剛抓好的全站資料中，篩選出這個商品的評價
+            const reviews = allReviewsData.filter(r => r.toolName === toolName);
+
+            if(reviews && reviews.length > 0) {
+                let html = '';
+                reviews.forEach(r => {
+                    let stars = '⭐'.repeat(Number(r.rating));
+                    html += `
+                    <div class="border-b border-gray-200 pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-bold text-gray-800">👤 ${r.reviewer}</span>
+                            <span class="text-xs text-gray-500">${r.date}</span>
+                        </div>
+                        <div class="text-sm mb-1">${stars}</div>
+                        <p class="text-sm text-gray-700">${r.comment.replace(/<br>/g, '<br/>')}</p>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="text-center text-gray-500 py-4">目前尚無評價，成為第一個留下心得的人吧！</div>';
             }
         }
 
@@ -771,6 +782,7 @@
                     msg.className = 'text-xs text-green-600 font-bold block';
                     document.getElementById('review-comment').value = ''; 
                     document.getElementById('review-order-no').value = ''; 
+                    await preloadAllReviews(); // 🌟 新增：送出後自動更新背景資料
                 } else {
                     msg.innerText = '❌ ' + data.message;
                     msg.className = 'text-xs text-red-500 font-bold block';
