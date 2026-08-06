@@ -341,6 +341,23 @@
                     let rawUrls = item.Image_URL ? item.Image_URL : '';
                     let coverImageUrl = rawUrls.split(',')[0].trim() || 'https://via.placeholder.com/400x250/334155/ffffff?text=No+Image';
 
+                    // --- 新增：動態星級評價顯示邏輯 ---
+                    let ratingHtml = '';
+                    if (item.Average_Rating && Number(item.Average_Rating) > 0) {
+                        let score = Number(item.Average_Rating);
+                        let fullStars = Math.floor(score); // 滿星數量
+                        let emptyStars = 5 - fullStars;    // 空星數量
+                        let starsDisplay = '★'.repeat(fullStars) + '☆'.repeat(emptyStars);
+                        
+                        // 組合星星的 HTML
+                        ratingHtml = `
+                        <div class="flex items-center mb-3">
+                            <span class="text-yellow-500 text-base tracking-widest">${starsDisplay}</span>
+                            <span class="text-amber-600 text-xs ml-2 font-bold">${score.toFixed(1)}</span>
+                        </div>`;
+                    }
+                    // ---------------------------------
+
                     const card = `
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-gray-200 flex flex-col cursor-pointer" onclick="openModal(${index})">
                             <div class="relative h-48 bg-gray-200 p-2">
@@ -353,6 +370,9 @@
                                     <h3 class="text-xl font-bold text-gray-900 leading-tight">${item.Tool_Name}</h3>
                                     <span class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-1 rounded ml-2 whitespace-nowrap">${item.Version}</span>
                                 </div>
+                                
+                                ${ratingHtml} <!-- 🌟 星星會自動顯示在這裡 -->
+                                
                                 <p class="text-gray-600 text-sm mb-4 flex-grow">${item.Short_Desc}</p>
                                 <div class="mb-4">${priceHtml}</div>
                                 <button class="w-full text-center border-2 border-industry-900 text-industry-900 font-semibold py-2 px-4 rounded hover:bg-industry-900 hover:text-white transition-colors">
