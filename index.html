@@ -727,11 +727,22 @@
             }
         }
 
-        // 🌟 瞬間渲染評價 (0 延遲)
-        function renderReviews(toolName) {
+        // 🌟 瞬間渲染評價 (防呆升級版)
+        async function renderReviews(toolName) {
             const container = document.getElementById('reviews-container');
-            // 從我們剛剛抓好的全站資料中，篩選出這個商品的評價
-            const reviews = allReviewsData.filter(r => r.toolName === toolName);
+            
+            // 1. 防呆：如果資料還沒抓回來，先顯示載入中，並強制等它一下
+            if (allReviewsData.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 py-4">🔄 評價同步中，請稍候...</div>';
+                await preloadAllReviews();
+            }
+
+            // 2. 除錯雷達：把抓到的東西印在控制台，方便排查問題
+            console.log("✅ 準備比對的商品名稱:", toolName);
+            console.log("📦 抓到的所有評價:", allReviewsData);
+
+            // 3. 篩選評價 (加上 .trim() 自動清除頭尾多餘的空白鍵，避免比對失敗)
+            const reviews = allReviewsData.filter(r => String(r.toolName).trim() === String(toolName).trim());
 
             if(reviews && reviews.length > 0) {
                 let html = '';
