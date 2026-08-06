@@ -210,15 +210,30 @@
                             <button id="modal-action-btn" class="bg-industry-900 hover:bg-industry-800 text-white text-lg font-semibold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 w-full md:w-auto"></button>
                         </div>
                         <div id="checkout-form-area" class="hidden mt-4 p-4 md:p-5 bg-blue-50 border border-blue-200 rounded-lg shadow-inner transition-all duration-300">
-                            <h5 class="font-bold text-blue-900 mb-2">接收檔案與授權</h5>
-                            <p class="text-sm text-blue-700 mb-3">請填寫您常用的 Email，付款完成後系統將自動發送壓縮檔至此信箱。</p>
-                            <div class="flex flex-col sm:flex-row gap-3">
-                                <input type="email" id="buyer-email" placeholder="請輸入 Email (例: example@gmail.com)" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <button id="confirm-checkout-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg shadow transition-colors whitespace-nowrap">
-                                    確認並前往付款
-                                </button>
+                            <!-- Email 區塊 -->
+                            <div class="mb-4">
+                                <h5 class="font-bold text-blue-900 mb-1">1. 接收檔案與授權</h5>
+                                <p class="text-xs text-blue-700 mb-2">請填寫您常用的 Email，付款完成後系統將發送檔案至此信箱。</p>
+                                <input type="email" id="buyer-email" placeholder="請輸入 Email (例: example@gmail.com)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                <p id="email-error" class="text-red-500 text-xs mt-1 hidden">⚠️ 請輸入有效的 Email 格式</p>
                             </div>
-                            <p id="email-error" class="text-red-500 text-sm mt-2 hidden">⚠️ 請輸入有效的 Email 格式</p>
+
+                            <!-- 折扣碼區塊 -->
+                            <div class="mb-4 border-t border-blue-100 pt-4">
+                                <h5 class="font-bold text-blue-900 mb-2">2. 🎟️ 優惠代碼 (選填)</h5>
+                                <div class="flex gap-2">
+                                    <input type="text" id="coupon-input" placeholder="輸入折扣碼" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase text-sm">
+                                    <button id="apply-coupon-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow transition-colors whitespace-nowrap text-sm">
+                                        套用
+                                    </button>
+                                </div>
+                                <p id="coupon-message" class="text-sm mt-2 hidden"></p>
+                            </div>
+
+                            <!-- 確認結帳按鈕 (金額會動態更新) -->
+                            <button id="confirm-checkout-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-colors flex justify-center items-center text-base">
+                                <span id="confirm-btn-text">確認並前往付款</span>&nbsp;(NT$ <span id="final-checkout-price">0</span>)
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -351,7 +366,16 @@
             const emailInput = document.getElementById('buyer-email');
             const emailError = document.getElementById('email-error');
             const confirmBtn = document.getElementById('confirm-checkout-btn');
+            const confirmBtnText = document.getElementById('confirm-btn-text'); // 新增文字控制
             
+            // --- 折扣碼相關元素 ---
+            const couponInput = document.getElementById('coupon-input');
+            const applyCouponBtn = document.getElementById('apply-coupon-btn');
+            const couponMessage = document.getElementById('coupon-message');
+            const finalPriceSpan = document.getElementById('final-checkout-price');
+            
+            let currentFinalPrice = item.Price_Sale; // 預設結帳金額為原特價
+
             const salesBadge = document.getElementById('modal-sales');
             const salesNumber = document.getElementById('sales-count-number');
             if (item.Sales_Count && parseInt(item.Sales_Count) > 0) {
@@ -361,12 +385,24 @@
                 salesBadge.classList.add('hidden');
             }
 
+            // 初始化與重置結帳區塊狀態
             checkoutArea.classList.add('hidden');
             emailInput.value = '';
             emailError.classList.add('hidden');
-            confirmBtn.innerText = '確認並前往付款';
+            confirmBtnText.innerText = '確認並前往付款';
             confirmBtn.disabled = false;
             
+            if(finalPriceSpan) finalPriceSpan.innerText = currentFinalPrice;
+            if(couponInput) couponInput.value = '';
+            if(couponMessage) {
+                couponMessage.classList.add('hidden');
+                couponMessage.innerText = '';
+            }
+            if(applyCouponBtn) {
+                applyCouponBtn.disabled = false;
+                applyCouponBtn.innerText = '套用';
+            }
+
             let rawUrls = item.Image_URL ? item.Image_URL : 'https://via.placeholder.com/800x600/334155/ffffff?text=No+Image';
             currentModalImages = rawUrls.split(',').map(url => url.trim()).filter(url => url !== '');
             currentImgIndex = 0;
@@ -401,9 +437,60 @@
                 actionBtn.onclick = () => {
                     checkoutArea.classList.remove('hidden');
                     emailInput.focus();
-                    document.getElementById('product-modal').firstElementChild.scrollBy({ top: 200, behavior: 'smooth' });
+                    document.getElementById('product-modal').firstElementChild.scrollBy({ top: 400, behavior: 'smooth' });
                 };
 
+                // --- 新增：套用折扣碼邏輯 ---
+                if(applyCouponBtn) {
+                    applyCouponBtn.onclick = async () => {
+                        const code = couponInput.value.trim();
+                        if(!code) return;
+                        
+                        applyCouponBtn.disabled = true;
+                        applyCouponBtn.innerText = '驗證中...';
+                        couponMessage.classList.remove('hidden');
+                        couponMessage.className = "text-sm mt-2 font-bold block text-gray-500";
+                        couponMessage.innerText = '正在向系統驗證折扣碼...';
+
+                        try {
+                            const res = await fetch(`${GAS_API_URL}?action=verifyCoupon&code=${code}`);
+                            const data = await res.json();
+                            
+                            if(data.success) {
+                                const minSpend = Number(data.minSpend);
+                                const discountAmount = Number(data.discountAmount);
+                                const originalPrice = Number(item.Price_Sale);
+                                
+                                if(originalPrice >= minSpend) {
+                                    currentFinalPrice = originalPrice - discountAmount;
+                                    if(currentFinalPrice < 0) currentFinalPrice = 0; // 防止負數
+                                    
+                                    couponMessage.innerText = `✅ 套用成功！已折抵 NT$ ${discountAmount}`;
+                                    couponMessage.className = "text-sm mt-2 text-green-600 font-bold block";
+                                    finalPriceSpan.innerText = currentFinalPrice; // 更新按鈕上的金額
+                                } else {
+                                    couponMessage.innerText = `⚠️ 此代碼需滿 NT$ ${minSpend} 才可使用`;
+                                    couponMessage.className = "text-sm mt-2 text-red-500 font-bold block";
+                                    currentFinalPrice = originalPrice; // 恢復原價
+                                    finalPriceSpan.innerText = currentFinalPrice;
+                                }
+                            } else {
+                                couponMessage.innerText = `❌ ${data.message}`;
+                                couponMessage.className = "text-sm mt-2 text-red-500 font-bold block";
+                                currentFinalPrice = Number(item.Price_Sale); // 恢復原價
+                                finalPriceSpan.innerText = currentFinalPrice;
+                            }
+                        } catch(e) {
+                            couponMessage.innerText = `⚠️ 驗證失敗，請檢查網路狀態`;
+                            couponMessage.className = "text-sm mt-2 text-red-500 font-bold block";
+                        }
+                        
+                        applyCouponBtn.disabled = false;
+                        applyCouponBtn.innerText = '套用';
+                    };
+                }
+
+                // 送出結帳邏輯
                 confirmBtn.onclick = async () => {
                     const email = emailInput.value.trim();
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
@@ -412,7 +499,7 @@
                         return;
                     }
                     emailError.classList.add('hidden');
-                    confirmBtn.innerText = '準備跳轉至金流頁面...';
+                    confirmBtnText.innerText = '準備跳轉至金流頁面...';
                     confirmBtn.disabled = true;
 
                     try {
@@ -421,14 +508,13 @@
                             body: JSON.stringify({
                                 toolName: item.Tool_Name,
                                 buyerEmail: email,
-                                price: item.Price_Sale
+                                price: currentFinalPrice // 核心修改：傳送折抵後的最新金額！
                             })
                         });
                         
                         const resData = await response.json();
 
                         if (resData.status === 'success') {
-                            // 動態建立 Form 表單並自動 Submit 跳轉至藍新金流
                             const form = document.createElement('form');
                             form.method = 'POST';
                             form.action = resData.payUrl;
@@ -449,16 +535,16 @@
                             }
 
                             document.body.appendChild(form);
-                            form.submit(); // 自動送出表單跳轉
+                            form.submit();
                         } else {
                             alert('建立訂單失敗，請稍後再試！');
-                            confirmBtn.innerText = '確認並前往付款';
+                            confirmBtnText.innerText = '確認並前往付款';
                             confirmBtn.disabled = false;
                         }
 
                     } catch (error) {
                         alert('系統連線發生錯誤，請稍後再試！');
-                        confirmBtn.innerText = '確認並前往付款';
+                        confirmBtnText.innerText = '確認並前往付款';
                         confirmBtn.disabled = false;
                     }
                 };
