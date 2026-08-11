@@ -131,10 +131,18 @@
     立即諮詢 AI
   </button>
 </div>
+        <!-- ================= 🌟 新增：商品分類篩選按鈕區 ================= -->
+<div class="flex flex-wrap gap-2 justify-center mb-8" id="category-filters">
+    <button onclick="filterProducts('all', this)" class="filter-btn px-5 py-2 rounded-full text-sm font-bold bg-blue-600 text-white shadow-sm transition duration-200">全部工具</button>
+    <button onclick="filterProducts('photo', this)" class="filter-btn px-5 py-2 rounded-full text-sm font-bold bg-white text-gray-700 border border-gray-200 shadow-sm hover:bg-gray-50 transition duration-200">📸 照片與相簿處理</button>
+    <button onclick="filterProducts('doc', this)" class="filter-btn px-5 py-2 rounded-full text-sm font-bold bg-white text-gray-700 border border-gray-200 shadow-sm hover:bg-gray-50 transition duration-200">📝 公文與文件自動化</button>
+    <button onclick="filterProducts('free', this)" class="filter-btn px-5 py-2 rounded-full text-sm font-bold bg-white text-gray-700 border border-gray-200 shadow-sm hover:bg-gray-50 transition duration-200">🆓 免費與試用版</button>
+</div>
+<!-- ============================================================= -->
+
         <div id="product-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div class="col-span-full text-center text-gray-500 py-10">載入中...</div>
         </div>
-    </div>
 
     <!-- ================= 頁尾與計數器 ================= -->
     <footer class="text-center py-10 border-t border-gray-200 mt-4">
@@ -805,6 +813,40 @@
             btn.disabled = false;
             btn.innerText = '送出評價';
             btn.classList.remove('opacity-50');
+        }
+        // ================= 🌟 新增：無痛外掛式商品篩選功能 =================
+        function filterProducts(type, btnElement) {
+            // 1. 切換按鈕的顏色狀態 (被點擊的按鈕變成藍底白字)
+            const allBtns = document.querySelectorAll('.filter-btn');
+            allBtns.forEach(btn => {
+                btn.className = "filter-btn px-5 py-2 rounded-full text-sm font-bold bg-white text-gray-700 border border-gray-200 shadow-sm hover:bg-gray-50 transition duration-200";
+            });
+            btnElement.className = "filter-btn px-5 py-2 rounded-full text-sm font-bold bg-blue-600 text-white shadow-sm transition duration-200";
+
+            // 2. 抓取商品卡片容器
+            const container = document.getElementById('product-container');
+            if(!container) return;
+
+            // 3. 掃描每張卡片，比對內文關鍵字
+            const cards = container.children;
+            for (let i = 0; i < cards.length; i++) {
+                const card = cards[i];
+                const text = card.innerText || card.textContent; // 抓取卡片上的所有文字
+                
+                let isMatch = false;
+                if (type === 'all') {
+                    isMatch = true;
+                } else if (type === 'photo') {
+                    isMatch = text.includes('照片') || text.includes('相簿') || text.includes('浮水印');
+                } else if (type === 'doc') {
+                    isMatch = text.includes('公文') || text.includes('文件') || text.includes('OCR') || text.includes('總表');
+                } else if (type === 'free') {
+                    isMatch = text.includes('免費') || text.includes('試用');
+                }
+
+                // 符合條件就顯示，不符合就隱藏
+                card.style.display = isMatch ? '' : 'none';
+            }
         }
     </script>
 <!-- FB Messenger 浮動客服按鈕 -->
