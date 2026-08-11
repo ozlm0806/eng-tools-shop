@@ -831,17 +831,24 @@
             const cards = container.children;
             for (let i = 0; i < cards.length; i++) {
                 const card = cards[i];
-                const text = card.innerText || card.textContent; // 抓取卡片上的所有文字
+                const fullText = card.innerText || card.textContent; // 全文 (用來找免費標籤)
+                
+                // 🌟 新增：單獨抓取商品標題來做精準比對，避開贈品說明的干擾
+                const titleElement = card.querySelector('h3');
+                const titleText = titleElement ? (titleElement.innerText || titleElement.textContent) : '';
                 
                 let isMatch = false;
                 if (type === 'all') {
                     isMatch = true;
                 } else if (type === 'photo') {
-                    isMatch = text.includes('照片') || text.includes('相簿') || text.includes('浮水印');
+                    // 只檢查標題有沒有包含這些字
+                    isMatch = titleText.includes('照片') || titleText.includes('相簿') || titleText.includes('浮水印');
                 } else if (type === 'doc') {
-                    isMatch = text.includes('公文') || text.includes('文件') || text.includes('OCR') || text.includes('總表');
+                    // 只檢查標題有沒有包含這些字
+                    isMatch = titleText.includes('公文') || titleText.includes('文件') || titleText.includes('OCR') || titleText.includes('總表') || titleText.includes('查核');
                 } else if (type === 'free') {
-                    isMatch = text.includes('免費版') || text.includes('試用版');
+                    // 免費版標籤不在標題裡，所以用全文比對
+                    isMatch = fullText.includes('免費版') || titleText.includes('試用版');
                 }
 
                 // 符合條件就顯示，不符合就隱藏
