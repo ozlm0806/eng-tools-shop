@@ -99,6 +99,24 @@
         }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        /* 熱銷角標緞帶：貼於商品圖左上角，Sales_Count > 5 時顯示 */
+        .ribbon-hot {
+            position: absolute;
+            top: 14px;
+            left: -36px;
+            width: 140px;
+            transform: rotate(-45deg);
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            color: #fff;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 4px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 10;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased relative">
@@ -303,7 +321,7 @@
                                 <svg class="w-4 h-4 mr-1.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                                 </svg>
-                                <span>下一步將連結至 <strong>藍新金流 NewebPay</strong> 您所有的交易資訊皆獲得安全保護。</span>
+                                <span>本站採用 <strong>藍新金流 NewebPay</strong> 最高等級 SSL 安全加密</span>
                             </div>
                         </div>
                     </div>
@@ -371,6 +389,9 @@
                     }
                     let rawUrls = item.Image_URL ? item.Image_URL : '';
                     let coverImageUrl = rawUrls.split(',')[0].trim() || 'https://via.placeholder.com/400x250/334155/ffffff?text=No+Image';
+                    // --- 新增：熱銷角標邏輯（Sales_Count > 5 才顯示）---
+                    let salesCountNum = Number(item.Sales_Count) || 0;
+                    let hotBadgeHtml = salesCountNum > 5 ? `<div class="ribbon-hot">🔥 熱銷</div>` : '';
                     // --- 新增：動態星級評價顯示邏輯 ---
                     let ratingHtml = '';
                     if (item.Average_Rating && Number(item.Average_Rating) > 0) {
@@ -390,6 +411,7 @@
                     const card = `
                         <div class="flex-shrink-0 w-[82%] xs:w-[75%] sm:w-[60%] snap-center md:w-auto md:flex-shrink bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-gray-200 flex flex-col cursor-pointer" onclick="openModal(${index})">
                             <div class="relative h-48 bg-gray-200 p-2">
+                                ${hotBadgeHtml}
                                 <img src="${coverImageUrl}" alt="${item.Tool_Name}" class="w-full h-full object-contain">
                                 <div class="absolute top-2 right-2">${badgeHtml}</div>
                                 <div class="absolute bottom-2 left-2 tag-ribbon bg-industry-900 text-white text-xs px-2 py-1 shadow">${item.Category}</div>
