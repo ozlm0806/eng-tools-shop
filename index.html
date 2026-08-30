@@ -528,12 +528,26 @@
                 actionBtn.innerText = '📥 立即下載';
                 actionBtn.onclick = () => downloadAndPrompt(item.Download_Link);
             } else {
+                let quantity = 1;
+                const MAX_QTY = 20;
+                const unitPrice = Number(item.Price_Sale);
+                let appliedCoupon = null; // {discountAmount, minSpend}：套用成功後快取，數量變動時直接重算，不必重打 API
+
                 priceArea.innerHTML = `
-                    <div class="text-sm text-gray-500 mb-1">Pro 付費版授權</div>
-                    <div class="flex items-end gap-3">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-sm text-gray-600 font-bold">購買數量</span>
+                        <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
+                            <button id="qty-decrease" type="button" class="w-9 h-9 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-lg">−</button>
+                            <span id="qty-display" class="w-10 text-center font-condensed font-bold text-lg">1</span>
+                            <button id="qty-increase" type="button" class="w-9 h-9 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-lg">＋</button>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-500 mb-1">Pro 付費版授權（單價）</div>
+                    <div class="flex items-end gap-3 mb-2">
                         <span class="font-condensed text-3xl font-bold text-red-600">NT$ ${item.Price_Sale}</span>
                         <span class="text-lg text-gray-400 line-through mb-1">NT$ ${item.Price_Origin}</span>
                     </div>
+                    <div class="text-sm text-gray-700">小計：<span id="subtotal-display" class="font-condensed font-bold text-base">NT$ ${item.Price_Sale}</span></div>
                 `;
                 actionBtn.innerText = '🛒 立即購買';
                 actionBtn.onclick = () => {
@@ -541,6 +555,46 @@
                     emailInput.focus();
                     document.getElementById('product-modal').firstElementChild.scrollBy({ top: 400, behavior: 'smooth' });
                 };
+
+                const qtyDisplay = document.getElementById('qty-display');
+                const subtotalDisplay = document.getElementById('subtotal-display');
+
+                // 依目前數量與（若有）已套用的折扣碼，重新計算應付金額；
+                // 折扣碼的最低消費門檻是跟「單價 x 數量」的小計比較，不是單價本身。
+                function recalcPrice() {
+                    const subtotal = unitPrice * quantity;
+                    if (subtotalDisplay) subtotalDisplay.innerText = `NT$ ${subtotal}`;
+
+                    if (!appliedCoupon) {
+                        currentFinalPrice = subtotal;
+                    } else if (subtotal >= appliedCoupon.minSpend) {
+                        currentFinalPrice = Math.max(0, subtotal - appliedCoupon.discountAmount);
+                        couponMessage.innerText = `✅ 套用成功！已折抵 NT$ ${appliedCoupon.discountAmount}`;
+                        couponMessage.className = "text-sm mt-2 text-green-600 font-bold block";
+                    } else {
+                        currentFinalPrice = subtotal;
+                        couponMessage.innerText = `⚠️ 此代碼需滿 NT$ ${appliedCoupon.minSpend} 才可使用（目前小計 NT$ ${subtotal}）`;
+                        couponMessage.className = "text-sm mt-2 text-red-500 font-bold block";
+                    }
+                    if (finalPriceSpan) finalPriceSpan.innerText = currentFinalPrice;
+                }
+                recalcPrice();
+
+                if (qtyDisplay) {
+                    document.getElementById('qty-decrease').onclick = () => {
+                        if (quantity <= 1) return;
+                        quantity--;
+                        qtyDisplay.innerText = quantity;
+                        recalcPrice();
+                    };
+                    document.getElementById('qty-increase').onclick = () => {
+                        if (quantity >= MAX_QTY) return;
+                        quantity++;
+                        qtyDisplay.innerText = quantity;
+                        recalcPrice();
+                    };
+                }
+
                 // --- 新增：套用折扣碼邏輯 ---
                 if(applyCouponBtn) {
                     applyCouponBtn.onclick = async () => {
@@ -557,28 +611,16 @@
                             const data = await res.json();
 
                             if(data.success) {
-                                const minSpend = Number(data.minSpend);
-                                const discountAmount = Number(data.discountAmount);
-                                const originalPrice = Number(item.Price_Sale);
-
-                                if(originalPrice >= minSpend) {
-                                    currentFinalPrice = originalPrice - discountAmount;
-                                    if(currentFinalPrice < 0) currentFinalPrice = 0; // 防止負數
-
-                                    couponMessage.innerText = `✅ 套用成功！已折抵 NT$ ${discountAmount}`;
-                                    couponMessage.className = "text-sm mt-2 text-green-600 font-bold block";
-                                    finalPriceSpan.innerText = currentFinalPrice; // 更新按鈕上的金額
-                                } else {
-                                    couponMessage.innerText = `⚠️ 此代碼需滿 NT$ ${minSpend} 才可使用`;
-                                    couponMessage.className = "text-sm mt-2 text-red-500 font-bold block";
-                                    currentFinalPrice = originalPrice; // 恢復原價
-                                    finalPriceSpan.innerText = currentFinalPrice;
-                                }
+                                appliedCoupon = {
+                                    discountAmount: Number(data.discountAmount),
+                                    minSpend: Number(data.minSpend)
+                                };
+                                recalcPrice(); // 用目前的數量小計去跟門檻比較，並更新畫面
                             } else {
+                                appliedCoupon = null;
                                 couponMessage.innerText = `❌ ${data.message}`;
                                 couponMessage.className = "text-sm mt-2 text-red-500 font-bold block";
-                                currentFinalPrice = Number(item.Price_Sale); // 恢復原價
-                                finalPriceSpan.innerText = currentFinalPrice;
+                                recalcPrice();
                             }
                         } catch(e) {
                             couponMessage.innerText = `⚠️ 驗證失敗，請檢查網路狀態`;
@@ -606,7 +648,8 @@
                             body: JSON.stringify({
                                 toolName: item.Tool_Name,
                                 buyerEmail: email,
-                                price: currentFinalPrice // 核心修改：傳送折抵後的最新金額！
+                                price: currentFinalPrice, // 核心修改：傳送折抵後的最新金額！
+                                quantity: quantity // 購買數量，後端會依此發放對應組數的授權碼、累計銷量
                             })
                         });
 
