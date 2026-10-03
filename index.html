@@ -568,8 +568,14 @@
                     if (!appliedCoupon) {
                         currentFinalPrice = subtotal;
                     } else if (subtotal >= appliedCoupon.minSpend) {
-                        currentFinalPrice = Math.max(0, subtotal - appliedCoupon.discountAmount);
-                        couponMessage.innerText = `✅ 套用成功！已折抵 NT$ ${appliedCoupon.discountAmount}`;
+                        // 百分比折扣碼：依小計計算折抵金額（四捨五入到整數元，藍新金額只收整數）
+                        const discount = appliedCoupon.discountRate
+                            ? Math.round(subtotal * appliedCoupon.discountRate)
+                            : appliedCoupon.discountAmount;
+                        currentFinalPrice = Math.max(0, subtotal - discount);
+                        couponMessage.innerText = appliedCoupon.discountRate
+                            ? `✅ 套用成功！享 ${Math.round(appliedCoupon.discountRate * 100)}% OFF，已折抵 NT$ ${discount}`
+                            : `✅ 套用成功！已折抵 NT$ ${discount}`;
                         couponMessage.className = "text-sm mt-2 text-green-600 font-bold block";
                     } else {
                         currentFinalPrice = subtotal;
@@ -611,9 +617,23 @@
                             const data = await res.json();
 
                             if(data.success) {
+                                // Discount_Amount 欄位：>= 1 為固定折抵金額（例：100 = 折 NT$100）；
+                                // 0~1 之間或文字 "90%" 為百分比折扣（例：0.9 / 90% = 90% OFF，只付一成）
+                                const rawDiscount = String(data.discountAmount).trim();
+                                let discountRate = 0;
+                                let discountAmount = 0;
+                                if (rawDiscount.endsWith('%')) {
+                                    discountRate = parseFloat(rawDiscount) / 100;
+                                } else if (Number(rawDiscount) > 0 && Number(rawDiscount) < 1) {
+                                    discountRate = Number(rawDiscount);
+                                } else {
+                                    discountAmount = Number(rawDiscount) || 0;
+                                }
+                                if (!(discountRate > 0 && discountRate < 1)) discountRate = 0;
                                 appliedCoupon = {
-                                    discountAmount: Number(data.discountAmount),
-                                    minSpend: Number(data.minSpend)
+                                    discountAmount: discountAmount,
+                                    discountRate: discountRate,
+                                    minSpend: Number(data.minSpend) || 0
                                 };
                                 recalcPrice(); // 用目前的數量小計去跟門檻比較，並更新畫面
                             } else {
