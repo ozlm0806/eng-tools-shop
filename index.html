@@ -667,6 +667,7 @@
                             method: 'POST',
                             body: JSON.stringify({
                                 toolName: item.Tool_Name,
+                                toolId: item.ID, // 商品 ID(例如 T011 / T011-1 / T011-2)，同名不同方案靠它區分發哪種序號
                                 buyerEmail: email,
                                 price: currentFinalPrice, // 核心修改：傳送折抵後的最新金額！
                                 quantity: quantity // 購買數量，後端會依此發放對應組數的授權碼、累計銷量
