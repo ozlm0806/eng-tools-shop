@@ -363,6 +363,10 @@
         const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTp95MfBgtgoU1q-Fes8aOFc_6vd61puUzKxdbNElwcRuEVHfR91Wd8TYcTBLBFYqbAb1VKHO16RnXM/pub?gid=0&single=true&output=csv';
         const SETTINGS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTp95MfBgtgoU1q-Fes8aOFc_6vd61puUzKxdbNElwcRuEVHfR91Wd8TYcTBLBFYqbAb1VKHO16RnXM/pub?gid=1840928189&single=true&output=csv';
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxqqcwfEWBg6yllZm3eNN5BbyfMPXZOaOpEPU5wuJPn2HRDBDGd1VV6M2rGzjQiNz7RPw/exec';
+        // 🌟 金額顯示加千分位(只影響畫面文字；結帳送出的金額仍是原本的數字)
+        function fmtNT(v) { const n = Number(v); return (v === '' || v == null || isNaN(n)) ? (v || '') : n.toLocaleString('en-US'); }
+        // 🌟 原價有填、而且高於售價，才顯示刪除線原價(原價=售價時不顯示，避免看起來像沒打折)
+        function hasOrigin(item) { const o = Number(item.Price_Origin), s = Number(item.Price_Sale); return !!item.Price_Origin && !isNaN(o) && o > s; }
         let allProductsData = [];
         let allReviewsData = []; // 🌟 新增：存放全站評價的空間
         let siteSettingsData = [];
@@ -384,8 +388,8 @@
                         priceHtml = `<span class="font-condensed text-2xl font-bold text-green-600">免費下載</span>`;
                     } else {
                         badgeHtml = `<span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-blue-400">Pro 付費版</span>`;
-                        priceHtml = `<span class="text-sm text-gray-500 line-through mr-2">NT$ ${item.Price_Origin}</span>
-                                     <span class="font-condensed text-2xl font-bold text-red-600">NT$ ${item.Price_Sale}</span>`;
+                        priceHtml = `${hasOrigin(item) ? `<span class="text-sm text-gray-500 line-through mr-2">NT$ ${fmtNT(item.Price_Origin)}</span>` : ''}
+                                     <span class="font-condensed text-2xl font-bold text-red-600">NT$ ${fmtNT(item.Price_Sale)}</span>`;
                     }
                     let rawUrls = item.Image_URL ? item.Image_URL : '';
                     let coverImageUrl = rawUrls.split(',')[0].trim() || 'https://via.placeholder.com/400x250/334155/ffffff?text=No+Image';
@@ -424,7 +428,7 @@
 
                                 ${ratingHtml} <!-- 🌟 星星會自動顯示在這裡 -->
 
-                                <p class="text-gray-600 text-sm mb-4 flex-grow">${item.Short_Desc}</p>
+                                <p class="text-gray-600 text-sm mb-4 flex-grow whitespace-pre-line">${item.Short_Desc}</p>
                                 <div class="mb-4">${priceHtml}</div>
                                 <button class="w-full text-center border-2 border-industry-900 text-industry-900 font-semibold py-2 px-4 rounded hover:bg-industry-900 hover:text-white transition-colors">
                                     🔍 查看詳情
@@ -491,7 +495,7 @@
             confirmBtnText.innerText = '確認並前往付款';
             confirmBtn.disabled = false;
 
-            if(finalPriceSpan) finalPriceSpan.innerText = currentFinalPrice;
+            if(finalPriceSpan) finalPriceSpan.innerText = fmtNT(currentFinalPrice);
             if(couponInput) couponInput.value = '';
             if(couponMessage) {
                 couponMessage.classList.add('hidden');
@@ -544,10 +548,10 @@
                     </div>
                     <div class="text-sm text-gray-500 mb-1">Pro 付費版授權（單價）</div>
                     <div class="flex items-end gap-3 mb-2">
-                        <span class="font-condensed text-3xl font-bold text-red-600">NT$ ${item.Price_Sale}</span>
-                        <span class="text-lg text-gray-400 line-through mb-1">NT$ ${item.Price_Origin}</span>
+                        <span class="font-condensed text-3xl font-bold text-red-600">NT$ ${fmtNT(item.Price_Sale)}</span>
+                        ${hasOrigin(item) ? `<span class="text-lg text-gray-400 line-through mb-1">NT$ ${fmtNT(item.Price_Origin)}</span>` : ''}
                     </div>
-                    <div class="text-sm text-gray-700">小計：<span id="subtotal-display" class="font-condensed font-bold text-base">NT$ ${item.Price_Sale}</span></div>
+                    <div class="text-sm text-gray-700">小計：<span id="subtotal-display" class="font-condensed font-bold text-base">NT$ ${fmtNT(item.Price_Sale)}</span></div>
                 `;
                 actionBtn.innerText = '🛒 立即購買';
                 actionBtn.onclick = () => {
@@ -563,7 +567,7 @@
                 // 折扣碼的最低消費門檻是跟「單價 x 數量」的小計比較，不是單價本身。
                 function recalcPrice() {
                     const subtotal = unitPrice * quantity;
-                    if (subtotalDisplay) subtotalDisplay.innerText = `NT$ ${subtotal}`;
+                    if (subtotalDisplay) subtotalDisplay.innerText = `NT$ ${fmtNT(subtotal)}`;
 
                     if (!appliedCoupon) {
                         currentFinalPrice = subtotal;
@@ -574,15 +578,15 @@
                             : appliedCoupon.discountAmount;
                         currentFinalPrice = Math.max(0, subtotal - discount);
                         couponMessage.innerText = appliedCoupon.discountRate
-                            ? `✅ 套用成功！享 ${Math.round(appliedCoupon.discountRate * 100)}% OFF，已折抵 NT$ ${discount}`
-                            : `✅ 套用成功！已折抵 NT$ ${discount}`;
+                            ? `✅ 套用成功！享 ${Math.round(appliedCoupon.discountRate * 100)}% OFF，已折抵 NT$ ${fmtNT(discount)}`
+                            : `✅ 套用成功！已折抵 NT$ ${fmtNT(discount)}`;
                         couponMessage.className = "text-sm mt-2 text-green-600 font-bold block";
                     } else {
                         currentFinalPrice = subtotal;
-                        couponMessage.innerText = `⚠️ 此代碼需滿 NT$ ${appliedCoupon.minSpend} 才可使用（目前小計 NT$ ${subtotal}）`;
+                        couponMessage.innerText = `⚠️ 此代碼需滿 NT$ ${fmtNT(appliedCoupon.minSpend)} 才可使用（目前小計 NT$ ${fmtNT(subtotal)}）`;
                         couponMessage.className = "text-sm mt-2 text-red-500 font-bold block";
                     }
-                    if (finalPriceSpan) finalPriceSpan.innerText = currentFinalPrice;
+                    if (finalPriceSpan) finalPriceSpan.innerText = fmtNT(currentFinalPrice);
                 }
                 recalcPrice();
 
