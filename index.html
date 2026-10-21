@@ -438,7 +438,7 @@
                             <div class="p-6 flex-grow flex flex-col">
                                 <div class="flex justify-between items-start mb-2">
                                     <h3 class="text-xl font-bold text-gray-900 leading-tight">${item.Tool_Name}</h3>
-                                    <span class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-1 rounded ml-2 whitespace-nowrap">${item.Version}</span>
+                                    ${(item.Version || '').trim() ? `<span class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-1 rounded ml-2 whitespace-nowrap">${item.Version}</span>` : ''}
                                 </div>
 
                                 ${ratingHtml} <!-- 🌟 星星會自動顯示在這裡 -->
@@ -527,6 +527,7 @@
 
             document.getElementById('modal-category').innerText = item.Category;
             document.getElementById('modal-version').innerText = item.Version;
+            document.getElementById('modal-version').classList.toggle('hidden', !(item.Version || '').trim()); // 版本空白不顯示灰框
             document.getElementById('modal-title').innerText = item.Tool_Name;
             document.getElementById('modal-desc').innerText = item.Short_Desc;
 
