@@ -32,6 +32,10 @@
                 window.dataLayer = window.dataLayer || [];
                 window.dataLayer.push({'event': 'btn_click_download'});
             }
+            else if (btnText.includes('前往營造學院購買')) {
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({'event': 'btn_click_partner'});
+            }
         }
     });
 });
@@ -259,6 +263,7 @@
                     <h4 class="text-lg font-bold text-gray-900 mb-3 border-l-4 border-industry-accent pl-2">📝 最新更新說明</h4>
                     <div id="modal-updatelog" class="text-gray-700 text-sm leading-relaxed mb-6 whitespace-pre-line bg-gray-50 p-4 rounded-md"></div>
                     <!-- ================= 新增：買家評價與心得區塊 ================= -->
+                    <div id="review-section"><!-- 合作導購商品沒有本站訂單編號，整區隱藏 -->
                     <h4 class="text-lg font-bold text-gray-900 mb-3 border-l-4 border-industry-accent pl-2 mt-2">⭐ 買家評價與心得</h4>
 
                     <!-- 顯示歷史評價的列表 -->
@@ -287,6 +292,7 @@
                             </div>
                         </div>
                     </div>
+                    </div><!-- /review-section -->
                     <!-- ========================================================= -->
                     <!-- 購買與結帳區塊 -->
                     <div class="flex flex-col pt-4 border-t border-gray-100">
@@ -363,6 +369,12 @@
         const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTp95MfBgtgoU1q-Fes8aOFc_6vd61puUzKxdbNElwcRuEVHfR91Wd8TYcTBLBFYqbAb1VKHO16RnXM/pub?gid=0&single=true&output=csv';
         const SETTINGS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTp95MfBgtgoU1q-Fes8aOFc_6vd61puUzKxdbNElwcRuEVHfR91Wd8TYcTBLBFYqbAb1VKHO16RnXM/pub?gid=1840928189&single=true&output=csv';
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxqqcwfEWBg6yllZm3eNN5BbyfMPXZOaOpEPU5wuJPn2HRDBDGd1VV6M2rGzjQiNz7RPw/exec';
+        // 合作導購商品 (Plan_Type = 合作導購)：不在本站結帳，按鈕導到合作夥伴平台 (Download_Link 填導購連結)
+        const PARTNER_NAME = '營造學院';
+        function goPartner(item) {
+            try { gtag('event', 'click_partner_buy', { 'tool_name': item.Tool_Name, 'partner': PARTNER_NAME, 'link_url': item.Download_Link }); } catch (e) {}
+            window.open(item.Download_Link, '_blank', 'noopener');
+        }
         // 🌟 金額顯示加千分位(只影響畫面文字；結帳送出的金額仍是原本的數字)
         function fmtNT(v) { const n = Number(v); return (v === '' || v == null || isNaN(n)) ? (v || '') : n.toLocaleString('en-US'); }
         // 🌟 原價有填、而且高於售價，才顯示刪除線原價(原價=售價時不顯示，避免看起來像沒打折)
@@ -386,6 +398,9 @@
                     if(item.Plan_Type === '免費版') {
                         badgeHtml = `<span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-green-400">免費版</span>`;
                         priceHtml = `<span class="font-condensed text-2xl font-bold text-green-600">免費下載</span>`;
+                    } else if(item.Plan_Type === '合作導購') {
+                        badgeHtml = `<span class="bg-purple-100 text-purple-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-purple-400">🤝 ${PARTNER_NAME}合作</span>`;
+                        priceHtml = `<span class="font-condensed text-xl font-bold text-purple-700">前往${PARTNER_NAME}購買 ↗</span>`;
                     } else {
                         badgeHtml = `<span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-blue-400">Pro 付費版</span>`;
                         priceHtml = `${hasOrigin(item) ? `<span class="text-sm text-gray-500 line-through mr-2">NT$ ${fmtNT(item.Price_Origin)}</span>` : ''}
@@ -525,12 +540,19 @@
             document.getElementById('review-comment').value = '';
             document.getElementById('review-rating').value = '5';
             renderReviews(item.Tool_Name); // 🌟 改為從記憶體瞬間讀取
+            document.getElementById('review-section').classList.toggle('hidden', item.Plan_Type === '合作導購');
             const priceArea = document.getElementById('modal-price-area');
             const actionBtn = document.getElementById('modal-action-btn');
             if(item.Plan_Type === '免費版') {
                 priceArea.innerHTML = `<div class="text-sm text-gray-500 mb-1">授權方式</div><div class="font-condensed text-3xl font-bold text-green-600">免費下載</div>`;
                 actionBtn.innerText = '📥 立即下載';
                 actionBtn.onclick = () => downloadAndPrompt(item.Download_Link);
+            } else if(item.Plan_Type === '合作導購') {
+                priceArea.innerHTML = `<div class="text-sm text-gray-500 mb-1">販售平台</div>
+                    <div class="font-condensed text-3xl font-bold text-purple-700 mb-2">🤝 ${PARTNER_NAME}</div>
+                    <div class="text-sm text-gray-600">本工具已與${PARTNER_NAME}合作上架，價格與購買方式以${PARTNER_NAME}課程頁為準。</div>`;
+                actionBtn.innerText = `🛒 前往${PARTNER_NAME}購買`;
+                actionBtn.onclick = () => goPartner(item);
             } else {
                 let quantity = 1;
                 const MAX_QTY = 20;
